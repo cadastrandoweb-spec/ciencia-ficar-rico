@@ -312,111 +312,122 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
   useEffect(() => {
     if (paymentMethod !== PaymentMethod.CREDIT_CARD) return;
 
-    const publicKey = import.meta.env.VITE_MP_PUBLIC_KEY;
-    if (!publicKey) {
-      setCardError('Chave pública do Mercado Pago não configurada.');
-      return;
-    }
+    console.log('DEBUG: Inicializando Mercado Pago para cartão de crédito...');
+    
+    try {
+      const publicKey = import.meta.env.VITE_MP_PUBLIC_KEY;
+      console.log('DEBUG: Chave pública:', publicKey ? 'OK' : 'MISSING');
+      
+      if (!publicKey) {
+        console.error('DEBUG: Chave pública do Mercado Pago não configurada');
+        setCardError('Chave pública do Mercado Pago não configurada.');
+        return;
+      }
 
-    const MercadoPagoCtor = (window as any).MercadoPago;
-    if (!MercadoPagoCtor) {
-      setCardError('SDK do Mercado Pago não carregou.');
-      return;
-    }
+      const MercadoPagoCtor = (window as any).MercadoPago;
+      console.log('DEBUG: MercadoPago SDK:', MercadoPagoCtor ? 'OK' : 'MISSING');
+      
+      if (!MercadoPagoCtor) {
+        console.error('DEBUG: SDK do Mercado Pago não carregou');
+        setCardError('SDK do Mercado Pago não carregou. Recarregue a página.');
+        return;
+      }
 
-    setCardError(null);
+      setCardError(null);
 
-    const mp = new MercadoPagoCtor(publicKey, { locale: 'pt-BR' });
-    mpRef.current = mp;
-    const fields = mp.fields;
-    mpFieldsRef.current = fields;
+      console.log('DEBUG: Criando instância do Mercado Pago...');
+      const mp = new MercadoPagoCtor(publicKey, { locale: 'pt-BR' });
+      mpRef.current = mp;
+      const fields = mp.fields;
+      mpFieldsRef.current = fields;
 
-    const cardNumberField = fields.create('cardNumber', { placeholder: 'Número do cartão', primary: true });
-    const securityCodeField = fields.create('securityCode', { placeholder: 'CVV' });
-    const expirationMonthField = fields.create('expirationMonth', { placeholder: 'MM' });
-    const expirationYearField = fields.create('expirationYear', { placeholder: 'AA' });
+      console.log('DEBUG: Criando campos do cartão...');
+      const cardNumberField = fields.create('cardNumber', { placeholder: 'Número do cartão', primary: true });
+      const securityCodeField = fields.create('securityCode', { placeholder: 'CVV' });
+      const expirationMonthField = fields.create('expirationMonth', { placeholder: 'MM' });
+      const expirationYearField = fields.create('expirationYear', { placeholder: 'AA' });
 
-    cardNumberField.mount('mp-card-number');
-    securityCodeField.mount('mp-security-code');
-    expirationMonthField.mount('mp-expiration-month');
-    expirationYearField.mount('mp-expiration-year');
+      console.log('DEBUG: Montando campos no DOM...');
+      cardNumberField.mount('mp-card-number');
+      securityCodeField.mount('mp-security-code');
+      expirationMonthField.mount('mp-expiration-month');
+      expirationYearField.mount('mp-expiration-year');
 
-    const onBinChange = async (e: any) => {
-      const bin = e?.bin;
-      setCardBin(bin || '');
-      if (!bin || String(bin).length < 6) {
+      console.log('DEBUG: Campos montados com sucesso');
+      setMpReady(true);
+
+      const onBinChange = async (e: any) => {
+        const bin = e?.bin;
+        console.log('DEBUG: BIN alterado:', bin);
+        setCardBin(bin || '');
+        if (!bin || String(bin).length < 6) {
+          setCardPaymentMethodId('');
+          setCardIssuerId('');
+          setCardIssuers(null);
+          setCardInstallmentOptions([]);
+          setCardInstallments(1);
+          setCardInstallmentsUnavailable(false);
+          return;
+        }
+        try {
+          const pm = await mp.getPaymentMethods({ bin });
+          const pmId = pm?.results?.[0]?.id;
+          setCardPaymentMethodId(pmId || '');
+
+          const issuersResp = await mp.getIssuers({ paymentMethodId: pmId, bin });
+          const issuers = Array.isArray(issuersResp) ? issuersResp : issuersResp?.results;
+          if (Array.isArray(issuers) && issuers.length > 0) {
+            setCardIssuers(issuers.map((i: any) => ({ id: String(i?.id), name: i?.name ? String(i.name) : undefined })));
+            setCardIssuerId(String(issuers[0]?.id || ''));
+          } else {
+            setCardIssuerId('');
+            setCardIssuers(null);
+          }
+
+          await refreshInstallments({
+            bin,
+            amount: totalAmount
+          });
+        } catch {
+          setCardPaymentMethodId('');
+          setCardIssuerId('');
+          setCardIssuers(null);
+          setCardInstallmentOptions([]);
+          setCardInstallments(1);
+          setCardInstallmentsUnavailable(true);
+        }
+      };
+
+      cardNumberField.on('binChange', onBinChange);
+
+      return () => {
+        console.log('DEBUG: Limpando campos do Mercado Pago...');
+        setMpReady(false);
+        mpRef.current = null;
+        mpFieldsRef.current = null;
+        setCardBin('');
         setCardPaymentMethodId('');
         setCardIssuerId('');
         setCardIssuers(null);
         setCardInstallmentOptions([]);
         setCardInstallments(1);
         setCardInstallmentsUnavailable(false);
-        return;
-      }
-      try {
-        const pm = await mp.getPaymentMethods({ bin });
-        const pmId = pm?.results?.[0]?.id;
-
-        setCardPaymentMethodId(pmId || '');
-
-        if (!pmId) {
-          setCardIssuerId('');
-          setCardIssuers(null);
-          setCardInstallmentOptions([]);
-          setCardInstallments(1);
-          setCardInstallmentsUnavailable(true);
-          return;
+        setCardInstallmentsLoading(false);
+        setCardInstallmentsDebug('');
+        try {
+          cardNumberField.unmount();
+          securityCodeField.unmount();
+          expirationMonthField.unmount();
+          expirationYearField.unmount();
+        } catch {
+          // ignore
         }
-
-        const issuersResp = await mp.getIssuers({ paymentMethodId: pmId, bin });
-        const issuers = Array.isArray(issuersResp) ? issuersResp : issuersResp?.results;
-        if (Array.isArray(issuers) && issuers.length > 0) {
-          setCardIssuers(issuers.map((i: any) => ({ id: String(i?.id), name: i?.name ? String(i.name) : undefined })));
-          setCardIssuerId(String(issuers[0]?.id || ''));
-        } else {
-          setCardIssuerId('');
-          setCardIssuers(null);
-        }
-
-        await refreshInstallments({
-          bin,
-          amount: totalAmount
-        });
-      } catch {
-        setCardPaymentMethodId('');
-        setCardIssuerId('');
-        setCardIssuers(null);
-        setCardInstallmentOptions([]);
-        setCardInstallments(1);
-        setCardInstallmentsUnavailable(true);
-      }
-    };
-
-    cardNumberField.on('binChange', onBinChange);
-    setMpReady(true);
-
-    return () => {
+      };
+    } catch (error) {
+      console.error('DEBUG: Erro geral ao inicializar Mercado Pago:', error);
+      setCardError('Erro ao inicializar pagamento com cartão. Tente recarregar a página.');
       setMpReady(false);
-      mpRef.current = null;
-      mpFieldsRef.current = null;
-      setCardBin('');
-      setCardPaymentMethodId('');
-      setCardIssuerId('');
-      setCardIssuers(null);
-      setCardInstallmentOptions([]);
-      setCardInstallments(1);
-      setCardInstallmentsUnavailable(false);
-      setCardInstallmentsLoading(false);
-      setCardInstallmentsDebug('');
-      try {
-        cardNumberField.unmount();
-        securityCodeField.unmount();
-        expirationMonthField.unmount();
-        expirationYearField.unmount();
-      } catch {
-        // ignore
-      }
-    };
+    }
   }, [paymentMethod]);
 
   const submitCreditCard = async () => {
