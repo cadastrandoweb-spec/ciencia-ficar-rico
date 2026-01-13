@@ -208,7 +208,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
     try {
       const mp = new MercadoPagoCtor(publicKey, { locale: 'pt-BR' });
       const instResp = await mp.getInstallments({
-        amount: normalizedAmountNumber,
+        amount: normalizedAmount,
         bin: args.bin,
         paymentMethodId: args.paymentMethodId,
         issuerId: args.issuerId,
