@@ -161,7 +161,7 @@ const App: React.FC = () => {
             // ignore
           }
           window.setTimeout(() => {
-            window.location.href = 'https://www.xandr.com.br/obrigado-trafegoadsense';
+            window.location.href = 'https://www.xandr.com.br/obrigado-rico';
           }, 800);
           return;
         }

@@ -137,7 +137,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
           }
         }
         window.setTimeout(() => {
-          window.location.href = 'https://www.xandr.com.br/obrigado-trafegoadsense';
+          window.location.href = 'https://www.xandr.com.br/obrigado-rico';
         }, 800);
       }
     } catch {
