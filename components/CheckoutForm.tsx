@@ -52,6 +52,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
   useEffect(() => {
     if (cardInstallmentsDebug) {
       console.debug(cardInstallmentsDebug);
+      console.log(cardInstallmentsDebug);
     }
   }, [cardInstallmentsDebug]);
 
