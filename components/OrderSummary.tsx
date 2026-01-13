@@ -33,16 +33,16 @@ export const OrderSummary: React.FC<OrderSummaryProps> = ({ upsellSelected }) =>
 
       {/* Product Image */}
       <div className="relative group -mt-2">
-        <div className="aspect-[4/5] w-full max-w-[180px] mx-auto overflow-hidden rounded-xl bg-slate-200 shadow-md">
+        <div className="w-full max-w-[500px] mx-auto overflow-hidden rounded-xl bg-slate-200 shadow-md">
           <img 
             src={MAIN_PRODUCT.image} 
             alt={MAIN_PRODUCT.name}
-            width={560}
-            height={700}
+            width={500}
+            height={350}
             loading="eager"
             fetchPriority="high"
             decoding="async"
-            className="h-full w-full object-cover object-center"
+            className="h-auto w-full object-cover object-center"
           />
         </div>
         <div className="mt-2 text-center">
