@@ -776,7 +776,15 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
 
           {/* Credit Card Option */}
           <div 
-            onClick={() => setPaymentMethod(PaymentMethod.CREDIT_CARD)}
+            onClick={() => {
+              try {
+                console.log('DEBUG: Selecionando cartão de crédito...');
+                setPaymentMethod(PaymentMethod.CREDIT_CARD);
+              } catch (error) {
+                console.error('DEBUG: Erro ao selecionar cartão de crédito:', error);
+                setCardError('Erro ao selecionar cartão de crédito. Tente novamente.');
+              }
+            }}
             className={`cursor-pointer flex items-center space-x-3 ${paymentMethod === PaymentMethod.CREDIT_CARD ? '' : 'opacity-70 hover:opacity-100'}`}
           >
              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMethod === PaymentMethod.CREDIT_CARD ? 'border-brand-600' : 'border-slate-300'}`}>
