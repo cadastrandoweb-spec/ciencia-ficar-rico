@@ -165,6 +165,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
   const refreshInstallments = async (args: {
     bin: string;
     amount: number;
+    paymentMethodId?: string;
   }) => {
     const publicKey = import.meta.env.VITE_MP_PUBLIC_KEY?.trim();
     const MercadoPagoCtor = (window as any).MercadoPago;
@@ -198,6 +199,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
       const instResp = await mp.getInstallments({
         amount: normalizedAmount,
         bin: args.bin,
+        paymentMethodId: args.paymentMethodId,
         locale: 'pt-BR'
       });
 
@@ -304,7 +306,8 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
     if (!cardBin || String(cardBin).length < 6 || !cardPaymentMethodId) return;
     void refreshInstallments({
       bin: cardBin,
-      amount: totalAmount
+      amount: totalAmount,
+      paymentMethodId: cardPaymentMethodId
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paymentMethod, cardBin, cardPaymentMethodId, cardIssuerId, totalAmount]);
@@ -386,7 +389,8 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
 
           await refreshInstallments({
             bin,
-            amount: totalAmount
+            amount: totalAmount,
+            paymentMethodId: pmId
           });
         } catch {
           setCardPaymentMethodId('');
