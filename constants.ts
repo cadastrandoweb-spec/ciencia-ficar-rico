@@ -5,7 +5,7 @@ export const MAIN_PRODUCT: Product = {
   name: 'Curso A Ciência de Ficar Rico',
   price: 47.00,
   // OBS: Substitua a URL abaixo pelo link direto da imagem que você enviou após hospedá-la
-  image: '/curso-riqueza.webp'
+  image: '/logorico.png'
 };
 
 // Produto sem upsell para este checkout
