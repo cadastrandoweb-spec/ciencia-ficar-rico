@@ -901,11 +901,11 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
                   </div>
                 )}
                 {cardInstallmentsLoading && (
-                  <div className="text-xs text-slate-500">Carregando parcelamento...</div>
+                  <div className="text-xs text-slate-500">Carregando opções de parcelamento...</div>
                 )}
-                {!cardInstallmentsLoading && cardInstallmentsUnavailable && (
+                {!cardInstallmentsLoading && cardInstallmentsUnavailable && cardBin && cardBin.length >= 6 && (
                   <div className="text-xs text-slate-500">
-                    Parcelamento indisponível para este cartão.
+                    Parcelamento à vista disponível para este cartão.
                   </div>
                 )}
                 {cardError && (
