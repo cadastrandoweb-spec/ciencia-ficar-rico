@@ -906,9 +906,6 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
                 {!cardInstallmentsLoading && cardInstallmentsUnavailable && (
                   <div className="text-xs text-slate-500">
                     Parcelamento indisponível para este cartão.
-                    <div className="mt-2 rounded-md border border-slate-200 bg-white p-2 text-[10px] leading-snug text-slate-600 break-words">
-                      {cardInstallmentsDebug || 'DEBUG[v2-installments]: sem resposta'}
-                    </div>
                   </div>
                 )}
                 {cardError && (
