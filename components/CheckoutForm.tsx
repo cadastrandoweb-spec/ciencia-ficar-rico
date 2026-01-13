@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+  import React, { useState, useEffect, useRef } from 'react';
+
 import { CreditCard, QrCode, AlertCircle, Lock, MapPin } from 'lucide-react';
 import { CardPaymentData, PaymentMethod, OrderForm, PixPaymentData } from '../types';
 import { Input } from './ui/Input';
@@ -47,6 +48,12 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
   const [cardInstallmentsLoading, setCardInstallmentsLoading] = useState(false);
   const [cardInstallmentsUnavailable, setCardInstallmentsUnavailable] = useState(false);
   const [cardInstallmentsDebug, setCardInstallmentsDebug] = useState<string>('');
+
+  useEffect(() => {
+    if (cardInstallmentsDebug) {
+      console.debug(cardInstallmentsDebug);
+    }
+  }, [cardInstallmentsDebug]);
 
   const mpRef = useRef<any>(null);
   const mpFieldsRef = useRef<any>(null);
