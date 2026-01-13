@@ -166,7 +166,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
     bin: string;
     amount: number;
   }) => {
-    const publicKey = import.meta.env.VITE_MP_PUBLIC_KEY;
+    const publicKey = import.meta.env.VITE_MP_PUBLIC_KEY?.trim();
     const MercadoPagoCtor = (window as any).MercadoPago;
 
     if (!publicKey || !MercadoPagoCtor) {
@@ -315,7 +315,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
     console.log('DEBUG: Inicializando Mercado Pago para cartão de crédito...');
     
     try {
-      const publicKey = import.meta.env.VITE_MP_PUBLIC_KEY;
+      const publicKey = import.meta.env.VITE_MP_PUBLIC_KEY?.trim();
       console.log('DEBUG: Chave pública:', publicKey ? 'OK' : 'MISSING');
       
       if (!publicKey) {
@@ -431,7 +431,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
   }, [paymentMethod]);
 
   const submitCreditCard = async () => {
-    const publicKey = import.meta.env.VITE_MP_PUBLIC_KEY;
+    const publicKey = import.meta.env.VITE_MP_PUBLIC_KEY?.trim();
     const MercadoPagoCtor = (window as any).MercadoPago;
     if (!publicKey || !MercadoPagoCtor) {
       setCardError('Cartão indisponível no momento.');
