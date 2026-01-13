@@ -192,7 +192,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
 
     setCardInstallmentsLoading(true);
     setCardInstallmentsUnavailable(false);
-    setCardInstallmentsDebug(`DEBUG[v2-installments]: bin=${String(args.bin)} amount=${normalizedAmount}`);
+    setCardInstallmentsDebug(`DEBUG[v2-installments]: bin=${String(args.bin)} amount=${normalizedAmount} pmId=${String(args.paymentMethodId)}`);
 
     try {
       const mp = new MercadoPagoCtor(publicKey, { locale: 'pt-BR' });
@@ -204,13 +204,15 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
       });
 
       try {
-        setCardInstallmentsDebug(JSON.stringify(instResp));
+        setCardInstallmentsDebug(`DEBUG[v2-installments]: resposta=${JSON.stringify(instResp)}`);
       } catch {
         setCardInstallmentsDebug('DEBUG[v2-installments]: resposta não serializável');
       }
 
       const instArr = Array.isArray(instResp) ? instResp : instResp?.results;
       const payerCosts = instArr?.[0]?.payer_costs;
+      setCardInstallmentsDebug(`DEBUG[v2-installments]: instArr=${JSON.stringify(instArr)} payerCosts=${JSON.stringify(payerCosts)}`);
+
       if (Array.isArray(payerCosts) && payerCosts.length > 0) {
         const mapped = payerCosts
           .filter((pc: any) => Number(pc?.installments) >= 1)
