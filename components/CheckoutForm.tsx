@@ -166,6 +166,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
     bin: string;
     amount: number;
     paymentMethodId?: string;
+    issuerId?: string;
   }) => {
     const publicKey = import.meta.env.VITE_MP_PUBLIC_KEY?.trim();
     const MercadoPagoCtor = (window as any).MercadoPago;
@@ -192,14 +193,17 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
 
     setCardInstallmentsLoading(true);
     setCardInstallmentsUnavailable(false);
-    setCardInstallmentsDebug(`DEBUG[v2-installments]: bin=${String(args.bin)} amount=${normalizedAmount} pmId=${String(args.paymentMethodId)}`);
+    setCardInstallmentsDebug(
+      `DEBUG[v2-installments]: bin=${String(args.bin)} amount=${normalizedAmountNumber} pmId=${String(args.paymentMethodId)} issuerId=${String(args.issuerId)}`
+    );
 
     try {
       const mp = new MercadoPagoCtor(publicKey, { locale: 'pt-BR' });
       const instResp = await mp.getInstallments({
-        amount: normalizedAmount,
+        amount: normalizedAmountNumber,
         bin: args.bin,
         paymentMethodId: args.paymentMethodId,
+        issuerId: args.issuerId,
         locale: 'pt-BR'
       });
 
@@ -309,7 +313,8 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
     void refreshInstallments({
       bin: cardBin,
       amount: totalAmount,
-      paymentMethodId: cardPaymentMethodId
+      paymentMethodId: cardPaymentMethodId,
+      issuerId: cardIssuerId || undefined
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paymentMethod, cardBin, cardPaymentMethodId, cardIssuerId, totalAmount]);
@@ -381,9 +386,14 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
 
           const issuersResp = await mp.getIssuers({ paymentMethodId: pmId, bin });
           const issuers = Array.isArray(issuersResp) ? issuersResp : issuersResp?.results;
+
+          let nextIssuerId = '';
           if (Array.isArray(issuers) && issuers.length > 0) {
-            setCardIssuers(issuers.map((i: any) => ({ id: String(i?.id), name: i?.name ? String(i.name) : undefined })));
-            setCardIssuerId(String(issuers[0]?.id || ''));
+            nextIssuerId = String(issuers[0]?.id || '');
+            setCardIssuers(
+              issuers.map((i: any) => ({ id: String(i?.id), name: i?.name ? String(i.name) : undefined }))
+            );
+            setCardIssuerId(nextIssuerId);
           } else {
             setCardIssuerId('');
             setCardIssuers(null);
@@ -392,7 +402,8 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
           await refreshInstallments({
             bin,
             amount: totalAmount,
-            paymentMethodId: pmId
+            paymentMethodId: pmId,
+            issuerId: nextIssuerId || undefined
           });
         } catch {
           setCardPaymentMethodId('');
