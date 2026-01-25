@@ -140,6 +140,16 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
             } else {
               trackFbEvent('Purchase', params);
             }
+
+            const gtag = (window as any)?.gtag;
+            if (typeof gtag === 'function') {
+              gtag('event', 'conversion', {
+                send_to: 'AW-11125417753/WdiQCMHWl9gaEJnOgbkp',
+                value: Number(totalAmount.toFixed(2)),
+                currency: 'BRL',
+                transaction_id: eventId || ''
+              });
+            }
           } catch {
             // ignore
           }

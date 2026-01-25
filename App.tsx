@@ -8,7 +8,8 @@ import { MAIN_PRODUCT, UPSELL_PRODUCT } from './constants';
 const App: React.FC = () => {
   // --- STATE ---
   const fbInitiateTrackedRef = useRef(false);
-  
+  const googlePurchaseTrackedRef = useRef(false);
+
   const [formData, setFormData] = useState<OrderForm>({
     name: '',
     email: '',
@@ -24,7 +25,7 @@ const App: React.FC = () => {
   });
 
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(PaymentMethod.PIX);
-  
+
   const [paymentState, setPaymentState] = useState<PaymentState>({
     method: PaymentMethod.PIX,
     isProcessing: false,
@@ -43,6 +44,21 @@ const App: React.FC = () => {
     if (typeof fbq !== 'function') return;
     try {
       fbq('track', eventName, params);
+    } catch {
+      // ignore
+    }
+  };
+
+  const trackGoogleAdsPurchase = (args: { value: number; currency: string; transactionId?: string }) => {
+    const gtag = (window as any)?.gtag;
+    if (typeof gtag !== 'function') return;
+    try {
+      gtag('event', 'conversion', {
+        send_to: 'AW-11125417753/WdiQCMHWl9gaEJnOgbkp',
+        value: args.value,
+        currency: args.currency,
+        transaction_id: args.transactionId || ''
+      });
     } catch {
       // ignore
     }
@@ -133,7 +149,7 @@ const App: React.FC = () => {
 
     try {
       const result = await processCheckout(formData, paymentMethod, false, cardPaymentData);
-      
+
       if (result.success) {
         if (paymentMethod === PaymentMethod.PIX && result.paymentId) {
           setPixPayment({
@@ -159,6 +175,15 @@ const App: React.FC = () => {
             }
           } catch {
             // ignore
+          }
+
+          if (!googlePurchaseTrackedRef.current) {
+            googlePurchaseTrackedRef.current = true;
+            trackGoogleAdsPurchase({
+              value: Number(totalAmount.toFixed(2)),
+              currency: 'BRL',
+              transactionId: result.paymentId ? String(result.paymentId) : undefined
+            });
           }
           window.setTimeout(() => {
             window.location.href = 'https://www.xandr.com.br/obrigado-rico';
